@@ -45,6 +45,7 @@ regd_users.post("/login", (req,res) => {
       req.session.authorization = {
         accessToken,username
     }
+    req.session.username=username
     return res.status(200).send("User "+username+" successfully logged in");
    }
    else {
@@ -52,18 +53,30 @@ regd_users.post("/login", (req,res) => {
   }
 });
 
-// Add a book review
+// Add a book review 
 regd_users.put("/auth/review/:isbn", (req, res) => {
   const isbn=req.params.isbn;
   const book = books[isbn];
-  if(book){
-      let reviews=req.params.reviews
-      if(reviews){
-        book["reviews"]=reviews
+ if(book)
+ {
+     
+    const username = req.session.username; 
+
+    if (username) {
+      const reviews=book.reviews
+      let existingReview =reviews[username]
+
+      if (existingReview) {
+        book.reviews = req.query.review;
+        res.send(`Book review for isbn ${isbn} updated.`);
+      } else {
+        book.reviews[username] = req.query.review;
+        res.send(`Book review for isbn ${isbn} added.`);
       }
-      books[isbn]=book;
-      res.send(`Book review for isbn: ${isbn} added/updated.`);
-  }
+      
+      books[isbn] = book; 
+    }
+ } 
 
   
 });
